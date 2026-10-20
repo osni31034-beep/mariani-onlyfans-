@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Mariani</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f6f8;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: #00aff0;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .content {
+            padding: 30px;
+        }
+        .login-box, .editor-box {
+            display: none;
+        }
+        .login-box.active, .editor-box.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        .btn {
+            background: #00aff0;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: #009ddb;
+        }
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+        .color-preview {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        .image-upload {
+            border: 2px dashed #e0e0e0;
+            border-radius: 5px;
+            padding: 20px;
+            text-align: center;
+            background: #fafafa;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .image-upload:hover {
+            border-color: #00aff0;
+            background: #f0f8ff;
+        }
+        .image-upload input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+        .upload-btn {
+            background: #00aff0;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .upload-btn:hover {
+            background: #009ddb;
+        }
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        @media (max-width: 600px) {
+            .content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Painel de Administração</h1>
+            <p>Gerencie todas as configurações do site</p>
+        </div>
+        <div class="content">
+            <div id="loginBox" class="login-box">
+                <h2>Login</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername">Usuário</label>
+                        <input type="text" id="loginUsername" placeholder="Digite o usuário" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Senha</label>
+                        <input type="password" id="loginPassword" placeholder="Digite a senha" required>
+                    </div>
+                    <button type="submit" class="btn">Entrar</button>
+                </form>
+                <div id="loginError" class="message error" style="display: none;"></div>
+            </div>
+            
+            <div id="editorBox" class="editor-box">
+                <h2>Editor de Configuração</h2>
+                <button id="logoutBtn" class="btn btn-secondary" style="margin-bottom: 20px;">Sair</button>
+                <form id="configForm">
+                    <!-- Site Basic Info -->
+                    <h3>Informações Básicas</h3>
+                    <div class="form-group">
+                        <label for="siteName">Nome do Site</label>
+                        <input type="text" id="siteName" placeholder="Nome do site" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="handle">Handle (@)</label>
+                        <input type="text" id="handle" placeholder="@seuhandle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <input type="text" id="status" placeholder="Ex: Disponível agora" required>
+                    </div>
+                    
+                    <!-- Bio -->
+                    <h3>Biografia</h3>
+                    <div class="form-group">
+                        <label for="bioText">Biografia (use quebras de linha para separar parágrafos)</label>
+                        <textarea id="bioText" placeholder="Digite sua biografia aqui..." required></textarea>
+                    </div>
+                    
+                    <!-- More Info -->
+                    <div class="form-group">
+                        <label for="moreText">Texto do link "Mais informações"</label>
+                        <input type="text" id="moreText" placeholder="Ex: Mais informações" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="moreLink">Link do "Mais informações"</label>
+                        <input type="text" id="moreLink" placeholder="#" required>
+                    </div>
+                    
+                    <!-- Offer -->
+                    <h3>Oferta</h3>
+                    <div class="form-group">
+                        <label for="offerText">Texto da oferta</label>
+                        <input type="text" id="offerText" placeholder="Ex: Oferta limitada - 60% de desconto por 31 dias!" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="offerSub">Subtexto da oferta</label>
+                        <input type="text" id="offerSub" placeholder="Ex: Oferta termina out 31" required>
+                    </div>
+                    
+                    <!-- Bubble -->
+                    <div class="form-group">
+                        <label for="bubbleText">Texto do balão</label>
+                        <input type="text" id="bubbleText" placeholder="Ex: te deixando entrar com 60% de desconto..." required>
+                    </div>
+                    
+                    <!-- Assinatura Button -->
+                    <h3>Botão de Assinatura</h3>
+                    <div class="form-group">
+                        <label for="buttonText">Texto do botão</label>
+                        <input type="text" id="buttonText" placeholder="Ex: ASSINAR" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="buttonLink">Link do botão</label>
+                        <input type="text" id="buttonLink" placeholder="Ex: https://t.me/Mariani_safadabot" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="buttonPrice">Preço no botão</label>
+                        <input type="text" id="buttonPrice" placeholder="Ex: R$ 19,00 por 31 dias" required>
+                    </div>
+                    
+                    <!-- Normal Price -->
+                    <div class="form-group">
+                        <label for="normalPriceText">Texto do preço normal</label>
+                        <input type="text" id="normalPriceText" placeholder="Ex: Preço Normal R$ 19,00 /mês" required>
+                    </div>
+                    
+                    <!-- Packages -->
+                    <h3>Pacotes</h3>
+                    <div id="packagesContainer">
+                        <!-- Packages will be generated here -->
+                    </div>
+                    <button type="button" id="addPackage" class="btn btn-secondary">+ Adicionar Pacote</button>
+                    
+                    <!-- Tabs -->
+                    <h3>Abas</h3>
+                    <div class="tabs-inputs" id="tabsInputs">
+                        <!-- Tab inputs will be generated here -->
+                    </div>
+                    
+                    <!-- Images -->
+                    <h3>Imagens</h3>
+                    <div class="form-group">
+                        <label for="logoImage">Logo (nome do arquivo)</label>
+                        <input type="text" id="logoImage" placeholder="Ex: logo.png" required>
+                    </div>
+                    <div class="image-upload">
+                        <p>Arraste e solte ou clique para selecionar</p>
+                        <p>Logo atual: <span id="currentLogoPreview"></span></p>
+                        <img id="logoPreview" class="image-preview" alt="Preview do logo">
+                        <input type="file" id="logoFileInput" accept="image/*">
+                        <button type="button" class="upload-btn" id="uploadLogoBtn">Upload Logo</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profileImage">Foto de Perfil (nome do arquivo)</label>
+                        <input type="text" id="profileImage" placeholder="Ex: foto.png" required>
+                    </div>
+                    <div class="image-upload">
+                        <p>Arraste e solte ou clique para selecionar</p>
+                        <p>Foto de perfil atual: <span id="currentProfilePreview"></span></p>
+                        <img id="profilePreview" class="image-preview" alt="Preview da foto de perfil">
+                        <input type="file" id="profileFileInput" accept="image/*">
+                        <button type="button" class="upload-btn" id="uploadProfileBtn">Upload Foto de Perfil</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bannerImage">Banner (nome do arquivo)</label>
+                        <input type="text" id="bannerImage" placeholder="Ex: banner.png" required>
+                    </div>
+                    <div class="image-upload">
+                        <p>Arraste e solte ou clique para selecionar</p>
+                        <p>Banner atual: <span id="currentBannerPreview"></span></p>
+                        <img id="bannerPreview" class="image-preview" alt="Preview do banner">
+                        <input type="file" id="bannerFileInput" accept="image/*">
+                        <button type="button" class="upload-btn" id="uploadBannerBtn">Upload Banner</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mediaImage">Mídia (nome do arquivo)</label>
+                        <input type="text" id="mediaImage" placeholder="Ex: media.png" required>
+                    </div>
+                    <div class="image-upload">
+                        <p>Arraste e solte ou clique para selecionar</p>
+                        <p>Mídia atual: <span id="currentMediaPreview"></span></p>
+                        <img id="mediaPreview" class="image-preview" alt="Preview da mídia">
+                        <input type="file" id="mediaFileInput" accept="image/*">
+                        <button type="button" class="upload-btn" id="uploadMediaBtn">Upload Mídia</button>
+                    </div>
+                    
+                    <!-- Primary Color -->
+                    <div class="form-group">
+                        <label for="primaryColor">Cor Primária</label>
+                        <input type="color" id="primaryColor" value="#00aff0">
+                        <div class="color-preview" id="colorPreview"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn" style="margin-top: 30px;">Salvar Configuração</button>
+                </form>
+                <div id="message" class="message" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Login state
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        
+        // Show appropriate box
+        document.getElementById('loginBox').classList.toggle('active', !isLoggedIn);
+        document.getElementById('editorBox').classList.toggle('active', isLoggedIn);
+        
+        // Login form handling
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (username === 'admin' && password === 'admin123') {
+                localStorage.setItem('isLoggedIn', 'true');
+                // Reload to show editor
+                window.location.reload();
+            } else {
+                document.getElementById('loginError').textContent = 'Usuário ou senha incorretos';
+                document.getElementById('loginError').style.display = 'block';
+            }
+        });
+        
+        // Logout button
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.reload();
+        });
+        
+        // Packages management
+        const packagesContainer = document.getElementById('packagesContainer');
+        const addPackageBtn = document.getElementById('addPackage');
+        
+        function addPackage(title = '', price = '', description = '', link = '') {
+            const div = document.createElement('div');
+            div.className = 'package';
+            div.innerHTML = `
+                <h3>Pacote</h3>
+                <div class="form-group">
+                    <label>Título</label>
+                    <input type="text" placeholder="Ex: SEMANAL — R$ 8,00" value="${title}">
+                </div>
+                <div class="form-group">
+                    <label>Preço</label>
+                    <input type="text" placeholder="Ex: acesso imediato por 7 dias" value="${price}">
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea placeholder="Descrição opcional">${description}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Link</label>
+                    <input type="text" placeholder="Ex: https://t.me/Mariani_safadabot" value="${link}">
+                </div>
+                <button type="button" class="remove-package btn btn-secondary">Remover Pacote</button>
+            `;
+            const removeBtn = div.querySelector('.remove-package');
+            removeBtn.addEventListener('click', function() {
+                div.remove();
+            });
+            packagesContainer.appendChild(div);
+        }
+        
+        // Tabs management
+        const tabsInputsContainer = document.getElementById('tabsInputs');
+        
+        function addTabInput(text = '') {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = 'Ex: 635 POSTAGENS';
+            input.value = text;
+            tabsInputsContainer.appendChild(input);
+        }
+        
+        // Image upload handling
+        function setupImageUpload(fileInputId, previewId, currentFilenameSpanId, uploadBtnId) {
+            const fileInput = document.getElementById(fileInputId);
+            const preview = document.getElementById(previewId);
+            const currentFilenameSpan = document.getElementById(currentFilenameSpanId);
+            const uploadBtn = document.getElementById(uploadBtnId);
+            
+            // Handle file selection
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    preview.src = event.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                
+                // Update current filename display
+                currentFilenameSpan.textContent = file.name;
+                
+                // Auto-upload when file is selected
+                uploadImage(fileInputId, file);
+            });
+            
+            // Handle upload button click
+            uploadBtn.addEventListener('click', function() {
+                fileInput.click();
+            });
+        }
+        
+        function uploadImage(fileInputId, file) {
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            fetch('/uploadimage', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === 'success') {
+                    // Update the filename input field
+                    const filenameInputId = fileInputId.replace('FileInput', 'Image');
+                    document.getElementById(filenameInputId).value = result.filename;
+                    showMessage('Imagem enviada com sucesso!', 'success');
+                } else {
+                    showMessage('Erro ao enviar imagem: ' + result.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error uploading image:', error);
+                showMessage('Erro ao enviar imagem: ' + error.message, 'error');
+            });
+        }
+        
+        // Setup image uploads for each type
+        setupImageUpload('logoFileInput', 'logoPreview', 'currentLogoPreview', 'uploadLogoBtn');
+        setupImageUpload('profileFileInput', 'profilePreview', 'currentProfilePreview', 'uploadProfileBtn');
+        setupImageUpload('bannerFileInput', 'bannerPreview', 'currentBannerPreview', 'uploadBannerBtn');
+        setupImageUpload('mediaFileInput', 'mediaPreview', 'currentMediaPreview', 'uploadMediaBtn');
+        
+        // Load config and populate form
+        async function loadConfigIntoForm() {
+            try {
+                const response = await fetch('config.json');
+                if (!response.ok) throw new Error('Failed to load config');
+                const config = await response.json();
+                
+                // Populate basic fields
+                document.getElementById('siteName').value = config.siteName || '';
+                document.getElementById('handle').value = config.handle || '';
+                document.getElementById('status').value = config.status || '';
+                document.getElementById('moreText').value = config.moreText || '';
+                document.getElementById('moreLink').value = config.moreLink || '';
+                document.getElementById('offerText').value = config.offerText || '';
+                document.getElementById('offerSub').value = config.offerSub || '';
+                document.getElementById('bubbleText').value = config.bubbleText || '';
+                document.getElementById('buttonText').value = config.buttonText || '';
+                document.getElementById('buttonLink').value = config.buttonLink || '';
+                document.getElementById('buttonPrice').value = config.buttonPrice || '';
+                document.getElementById('normalPriceText').value = config.normalPriceText || '';
+                document.getElementById('logoImage').value = config.logoImage || '';
+                document.getElementById('profileImage').value = config.profileImage || '';
+                document.getElementById('bannerImage').value = config.bannerImage || '';
+                document.getElementById('mediaImage').value = config.mediaImage || '';
+                document.getElementById('primaryColor').value = config.primaryColor || '#00aff0';
+                document.getElementById('colorPreview').style.backgroundColor = config.primaryColor || '#00aff0';
+                
+                // Populate bio (join array with newlines for single textarea)
+                const bioText = document.getElementById('bioText');
+                if (bioText) {
+                    bioText.value = (config.bio || []).join('\n');
+                }
+                
+                // Populate packages
+                packagesContainer.innerHTML = '';
+                (config.packages || []).forEach(pkg => {
+                    addPackage(pkg.title || '', pkg.price || '', pkg.description || '', pkg.link || '');
+                });
+                if ((config.packages || []).length === 0) {
+                    addPackage(); // Add one empty package if none
+                }
+                
+                // Populate tabs
+                tabsInputsContainer.innerHTML = '';
+                (config.tabs || []).forEach(tab => {
+                    addTabInput(tab);
+                });
+                if ((config.tabs || []).length === 0) {
+                    addTabInput(); // Add one empty tab if none
+                }
+                
+                // Set current filename displays for images
+                document.getElementById('currentLogoPreview').textContent = config.logoImage || '';
+                document.getElementById('currentProfilePreview').textContent = config.profileImage || '';
+                document.getElementById('currentBannerPreview').textContent = config.bannerImage || '';
+                document.getElementById('currentMediaPreview').textContent = config.mediaImage || '';
+                
+            } catch (error) {
+                console.error('Error loading config:', error);
+                showMessage('Erro ao carregar configuração', 'error');
+            }
+        }
+        
+        // Update color preview
+        document.getElementById('primaryColor').addEventListener('input', function(e) {
+            document.getElementById('colorPreview').style.backgroundColor = e.target.value;
+        });
+        
+        // Add event listeners
+        addPackageBtn.addEventListener('click', function() {
+            addPackage();
+        });
+        
+        // Form submission
+        document.getElementById('configForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Collect bio text and split by newlines to create array
+            const bioText = document.getElementById('bioText').value;
+            const bioLines = bioText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            
+            // Collect packages
+            const packages = [];
+            packagesContainer.querySelectorAll('.package').forEach(packageDiv => {
+                const inputs = packageDiv.querySelectorAll('input, textarea');
+                const title = inputs[0].value.trim();
+                const price = inputs[1].value.trim();
+                const description = inputs[2].value.trim();
+                const link = inputs[3].value.trim();
+                if (title || price) { // Only add if at least title or price is filled
+                    packages.push({
+                        title: title,
+                        price: price,
+                        description: description,
+                        link: link
+                    });
+                }
+            });
+            
+            // Collect tabs
+            const tabs = [];
+            tabsInputsContainer.querySelectorAll('input').forEach(input => {
+                const text = input.value.trim();
+                if (text) tabs.push(text);
+            });
+            
+            // Build config object
+            const config = {
+                siteName: document.getElementById('siteName').value.trim(),
+                handle: document.getElementById('handle').value.trim(),
+                status: document.getElementById('status').value.trim(),
+                bio: bioLines,
+                moreText: document.getElementById('moreText').value.trim(),
+                moreLink: document.getElementById('moreLink').value.trim(),
+                offerText: document.getElementById('offerText').value.trim(),
+                offerSub: document.getElementById('offerSub').value.trim(),
+                bubbleText: document.getElementById('bubbleText').value.trim(),
+                buttonText: document.getElementById('buttonText').value.trim(),
+                buttonLink: document.getElementById('buttonLink').value.trim(),
+                buttonPrice: document.getElementById('buttonPrice').value.trim(),
+                normalPriceText: document.getElementById('normalPriceText').value.trim(),
+                packages: packages,
+                tabs: tabs,
+                logoImage: document.getElementById('logoImage').value.trim(),
+                profileImage: document.getElementById('profileImage').value.trim(),
+                bannerImage: document.getElementById('bannerImage').value.trim(),
+                mediaImage: document.getElementById('mediaImage').value.trim(),
+                primaryColor: document.getElementById('primaryColor').value
+            };
+            
+            // Validate required fields
+            if (!config.siteName || !config.handle || !config.status) {
+                showMessage('Por favor, preencha os campos obrigatórios (Nome do Site, Handle, Status)', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/saveconfig', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                
+                const result = await response.json();
+                if (result.status === 'success') {
+                    showMessage('Configuração salva com sucesso! Recarregando o site principal...', 'success');
+                    // Reload the main site after a short delay
+                    setTimeout(() => {
+                        window.location.href = 'ONLYFANSTELA.html';
+                    }, 1500);
+                } else {
+                    showMessage('Erro ao salvar: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error saving config:', error);
+                showMessage('Erro ao salvar configuração: ' + error.message, 'error');
+            }
+        });
+        
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+        }
+        
+        // Initialize
+        if (isLoggedIn) {
+            loadConfigIntoForm();
+        }
+    </script>
+</body>
+</html>
